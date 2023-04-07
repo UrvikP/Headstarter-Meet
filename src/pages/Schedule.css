@@ -1,0 +1,13 @@
+.wrapper-center {
+    margin: auto;
+    width: 50%;
+    border: 2px solid rgb(218, 168, 50);
+    padding: 10px;
+    text-align: center;
+}
+
+.btn {
+    background-color: aqua;
+    padding: 10px 20px;
+    cursor: pointer;
+}
