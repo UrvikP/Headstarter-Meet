@@ -1,13 +1,12 @@
 import express from 'express'
 import mongoose from 'mongoose'
 import cors from 'cors'
+import Event from './models/Event.js';
 
+import pkg from 'express';
 import {config} from "dotenv";
 config();
 
-import Event from './models/Event.js'
-
-import pkg from 'express';
 const { Request, Response } = pkg;
 
 const app = express();
