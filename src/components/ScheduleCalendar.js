@@ -4,9 +4,12 @@ import parse from 'date-fns/parse';
 import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import "react-big-calendar/lib/css/react-big-calendar.css"
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css";
+import TimePicker from "rc-time-picker";
+import 'rc-time-picker/assets/index.css';
+import moment from "moment"
 
 const locales = {
   "en-US": require("date-fns/locale/en-US")
@@ -19,58 +22,175 @@ const localizer = dateFnsLocalizer({
   locales
 })
 
-const events = [
-    /*database code for pulling in events made by user*/
-    {
-    title: "Big Meeting",
-    allDay: true,
-    start: new Date(2023, 3, 1),
-    end: new Date(2023, 3, 1)
-  },
-  {
-    title: "Vacation",
-    allDay: true,
-    start: new Date(2023, 3, 4),
-    end: new Date(2023, 3, 4)
-  },
-  {
-    title: "Work",
-    allDay: true,
-    start: new Date(2023, 3, 10),
-    end: new Date(2023, 3, 10)
-  }
-]
-
 const ScheduleCalendar = () => {
-  //newEvent state tracks the title, start date, and end date of a new event that the user wants to add to the calendar
-  const [newEvent, setNewEvent] = useState({ title:"", start: "", end: ""})
-  //allEvents state is an array of all events that have been added to the calendar
-  const [allEvents, setAllEvents] = useState(events)
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [startTime, setStartTime] = useState('')
+  const [endTime, setEndTime] = useState('')
+  const [startYear, setStartYear] = useState(0)
+  const [startMonth, setStartMonth] = useState(0)
+  const [startDay, setStartDay] = useState(0)
+  const [endYear, setEndYear] = useState(0)
+  const [endMonth, setEndMonth] = useState(0)
+  const [endDay, setEndDay] = useState(0)
+  const [startHour, setStartHour] = useState(0)
+  const [startMinute, setStartMinute] = useState(0)
+  const [endHour, setEndHour] = useState(0)
+  const [endMinute, setEndMinute] = useState(0)
+  const [title, setTitle] = useState('');
+  const [events, setEvents] = useState([]);
 
-  //when the user clicks the button to add a new event. It adds the new event to the allEvents array by updating the state using setAllEvents
-  function handleAddEvent() {
-    setAllEvents([...allEvents, newEvent])
+  const handleStartDateChange = ((date) => {
+    setStartDate(date)
+    const { year, month, day } = convertDateString(date);
+    setStartYear(year)
+    setStartMonth(month)
+    setStartDay(day)
+  });
+
+  const handleEndDateChange = ((date) => {
+    setEndDate(date)
+    const { year, month, day } = convertDateString(date);
+    setEndYear(year)
+    setEndMonth(month)
+    setEndDay(day)
+  });
+
+  const handleTitleChange = ((event) => {
+    setTitle(event.target.value)
+  });
+
+  const handleStartTimeChange = ((time) => {
+    const { hour, minute } = convertTimeString(time);
+    setStartHour(hour)
+    setStartMinute(minute)
+  });
+
+  const handleEndTimeChange = ((time) => {
+    const { hour, minute } = convertTimeString(time);
+    setEndHour(hour)
+    setEndMinute(minute)
+  });
+
+  function convertDateString(dateString) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+
+    return { 
+      year: Number(year), 
+      month: Number(month), 
+      day: Number(day) 
+    }
+  };
+
+  function convertTimeString(timeString){
+    const formatted = timeString && timeString.format('HH:mm');
+    const [hour, minute] = formatted.split(':');
+
+    return {
+      hour: Number(hour),
+      minute: Number(minute)
+    }
   }
+
+  async function handleCreateEvent(e) {
+    e.preventDefault()
+      await fetch('http://localhost:8000/events', {
+      method: 'POST',
+      body: JSON.stringify({
+        title,
+        startYear,
+        startMonth,
+        startDay,
+        endYear,
+        endMonth,
+        endDay,
+        startHour,
+        startMinute,
+        endHour,
+        endMinute
+      }),
+      headers: {
+        "Content-Type": 'application/json'
+      }
+    });
+    setTitle("")
+    setStartDate("")
+    setEndDate("")
+    setStartTime("")
+    setEndTime("")
+    fetchEvents()
+  }
+
+async function handleDelete(id) {
+  await fetch(`http://localhost:8000/events/${id}`, {
+    method: 'DELETE'
+  });
+  fetchEvents();
+}
+
+  async function fetchEvents(){
+    const response  = await fetch('http://localhost:8000/events');
+    const eventsData = await response.json(); 
+    const events = eventsData.map(event => {
+      console.log(event._id)
+      return {
+        id: event._id,
+        title: event.title,
+        start: new Date(event.startYear, event.startMonth - 1, event.startDay, event.startHour, event.startMinute),
+        end: new Date(event.endYear, event.endMonth - 1, event.endDay, event.endHour, event.endMinute)
+      }
+    });
+    setEvents(events)
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
 
   return (
     <div>
-        <h1>Calendar</h1>
         <div>
             <div style={{float: 'left', width: '300px', marginLeft: '50px' }}>
-                <DatePicker placeholderText='Start Date' selected={newEvent.start} onChange={(start) => setNewEvent({ ...newEvent, start })} />
-                <DatePicker placeholderText='End Date' selected={newEvent.end} onChange={(end) => setNewEvent({ ...newEvent, end })} />
-                <input type='text' placeholder='Add Title' style={{ width: '100%', marginRight: '10px' }} value={newEvent.title} onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })} />
-                <button style={{ marginTop: '10px', width: '60px', height: '50px', backgroundColor: 'black', color: 'white' }} onClick={handleAddEvent}>Submit</button>
+              <DatePicker defaultDate={new Date()}  selected={startDate} onChange={handleStartDateChange} placeholderText='Start Date' />
+              <TimePicker
+                placeholder="Select Time"
+                selected={startTime}
+                use12Hours
+                showSecond={false}
+                focusOnOpen={true}
+                minuteStep={15}
+                format="hh:mm a"
+                onChange={handleStartTimeChange}
+              />
+              <DatePicker defaultDate={moment().toDate()} selected={endDate} onChange={handleEndDateChange} placeholderText='End Date' />
+              <TimePicker
+                placeholder="Select Time"
+                selected={endTime}
+                use12Hours
+                showSecond={false}
+                focusOnOpen={true}
+                minuteStep={15}
+                format="hh:mm a"
+                onChange={handleEndTimeChange}
+              />
+                <input value={title} onChange={handleTitleChange} type='text' style={{ width: '100%', marginRight: '10px' }}/>
+                <button onClick={handleCreateEvent} style={{ marginTop: '10px', width: '60px', height: '50px', backgroundColor: 'black', color: 'white' }}>Submit</button>
                 <div>
                     <ul style={{marginTop: '20px', listStyle: 'none', padding: '30px'}}>
-                        {allEvents.map((event, index) => (
+                        {events.map((event, index) => (
+                          <div>
                             <li key={index}>{event.title}</li>
+                            <button onClick={() => handleDelete(event.id)}>Delete</button>
+                          </div>
                         ))}
                     </ul>
                 </div>
             </div>
-            <div style={{ marginRight: '30px', float: 'right', width: '600px' }}>
-                <Calendar localizer={localizer} events={allEvents} startAccessor="start" endAccessor="end" style={{ height: 500, width: '100%' }} />
+            <div style={{ marginRight: '30px', float: 'right', width: '900px' }}>
+              <Calendar min={new Date(0, 0, 0, 8, 0, 0)} max={new Date(0, 0, 0, 21, 0, 0)} defaultView="week" defaultDate={moment().toDate()} localizer={localizer} events={events} startAccessor="start" endAccessor="end" style={{ height: 500, width: '100%' }} />
             </div>
         </div>
     </div>
