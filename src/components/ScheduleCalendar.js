@@ -219,7 +219,8 @@ async function handleDelete(id) {
               />
                 <input value={title} onChange={handleTitleChange} type='text' style={{ width: '100%', marginRight: '10px' }}/>
                 <button onClick={handleCreateEvent} style={{ marginTop: '10px', width: '60px', height: '50px', backgroundColor: 'black', color: 'white' }}>Submit</button>
-                <button onClick={handleScheduleEvent} style={{ marginTop: '10px', width: '60px', height: '50px', backgroundColor: 'black', color: 'white' }}>Schedule Meeting</button>
+                <br />
+                <button onClick={handleScheduleEvent} style={{ marginTop: '10px', width: '80px', height: '50px', backgroundColor: 'black', color: 'white' }}>Schedule Meeting</button>
                 <div>
                     <ul style={{marginTop: '20px', listStyle: 'none', padding: '30px'}}>
                         {events.map((event, index) => (
