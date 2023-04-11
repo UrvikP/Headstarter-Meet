@@ -10,6 +10,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import TimePicker from "rc-time-picker";
 import 'rc-time-picker/assets/index.css';
 import moment from "moment"
+import emailjs from "@emailjs/browser";  // imported to use emailJS for schedule notification
 
 const locales = {
   "en-US": require("date-fns/locale/en-US")
@@ -124,6 +125,46 @@ const ScheduleCalendar = () => {
     fetchEvents()
   }
 
+  // Urvik - EmailJS implementation for schedule builder
+  // This is to send an email notification when you schedule a group meeting
+  async function handleScheduleEvent(e) {
+    e.preventDefault()
+      await fetch('http://localhost:8000/events', {
+      method: 'POST',
+      body: JSON.stringify({
+        title,
+        startYear,
+        startMonth,
+        startDay,
+        endYear,
+        endMonth,
+        endDay,
+        startHour,
+        startMinute,
+        endHour,
+        endMinute
+      }),
+      headers: {
+        "Content-Type": 'application/json'
+      }
+    });
+    // we will loop through all the user emails in the group and send each member an email notification
+    // for loop is not done yet since we need to pull in group emails
+    emailjs.send("service_boqxtij","template_ksuoxyq",{
+        message: `Your Meeting will start at ${startTime} and end at ${endTime}`,
+        subject: `New Meeting Scheduled for ${startDate}`,
+        email: "default@gmail.com",
+        }, "4jG-pY2QT7n7S8m1j");
+    // end of emailJS
+    setTitle("")
+    setStartDate("")
+    setEndDate("")
+    setStartTime("")
+    setEndTime("")
+    fetchEvents()
+  }
+
+
 async function handleDelete(id) {
   await fetch(`http://localhost:8000/events/${id}`, {
     method: 'DELETE'
@@ -178,6 +219,8 @@ async function handleDelete(id) {
               />
                 <input value={title} onChange={handleTitleChange} type='text' style={{ width: '100%', marginRight: '10px' }}/>
                 <button onClick={handleCreateEvent} style={{ marginTop: '10px', width: '60px', height: '50px', backgroundColor: 'black', color: 'white' }}>Submit</button>
+                <br />
+                <button onClick={handleScheduleEvent} style={{ marginTop: '10px', width: '80px', height: '50px', backgroundColor: 'black', color: 'white' }}>Schedule Meeting</button>
                 <div>
                     <ul style={{marginTop: '20px', listStyle: 'none', padding: '30px'}}>
                         {events.map((event, index) => (
