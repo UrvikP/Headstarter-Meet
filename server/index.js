@@ -47,7 +47,7 @@ app.delete('/events/:id', async (req, res) => {
 });
 
 //Connecting the DB to the Server
-mongoose.connect(process.env.DBURI ?? "mongodb+srv://nick:everton@meet.vmotbu7.mongodb.net/?retryWrites=true&w=majority").then(() => {
+mongoose.connect(process.env.DBURI ?? "").then(() => {
     console.log(`listening on port ${PORT}`);
     app.listen(PORT);
 });
