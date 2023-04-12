@@ -151,9 +151,9 @@ const ScheduleCalendar = () => {
     // we will loop through all the user emails in the group and send each member an email notification
     // for loop is not done yet since we need to pull in group emails
     emailjs.send("service_boqxtij","template_ksuoxyq",{
-        message: `Your Meeting will start at ${startTime} and end at ${endTime}`,
-        subject: `New Meeting Scheduled for ${startDate}`,
-        email: "default@gmail.com",
+        message: `Your Meeting will start at ${startDate = new Date}`,
+        subject: `New Meeting Scheduled on ${startDate}`,
+        email: "urvik95@gmail.com",
         }, "4jG-pY2QT7n7S8m1j");
     // end of emailJS
     setTitle("")
