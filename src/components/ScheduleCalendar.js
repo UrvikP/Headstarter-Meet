@@ -40,6 +40,8 @@ const ScheduleCalendar = () => {
   const [endMinute, setEndMinute] = useState(0)
   const [title, setTitle] = useState('');
   const [events, setEvents] = useState([]);
+  const [meetings, setMeetings] = useState([]);
+  const [busyTimes, setBusyTimes] = useState([]);
 
   const handleStartDateChange = ((date) => {
     setStartDate(date)
@@ -72,6 +74,7 @@ const ScheduleCalendar = () => {
     setEndHour(hour)
     setEndMinute(minute)
   });
+
 
   function convertDateString(dateString) {
     const date = new Date(dateString);
@@ -111,7 +114,8 @@ const ScheduleCalendar = () => {
         startHour,
         startMinute,
         endHour,
-        endMinute
+        endMinute,
+        isMeeting: false
       }),
       headers: {
         "Content-Type": 'application/json'
@@ -142,7 +146,8 @@ const ScheduleCalendar = () => {
         startHour,
         startMinute,
         endHour,
-        endMinute
+        endMinute,
+        isMeeting: true
       }),
       headers: {
         "Content-Type": 'application/json'
@@ -181,7 +186,8 @@ async function handleDelete(id) {
         id: event._id,
         title: event.title,
         start: new Date(event.startYear, event.startMonth - 1, event.startDay, event.startHour, event.startMinute),
-        end: new Date(event.endYear, event.endMonth - 1, event.endDay, event.endHour, event.endMinute)
+        end: new Date(event.endYear, event.endMonth - 1, event.endDay, event.endHour, event.endMinute),
+        isMeeting: event.isMeeting
       }
     });
     setEvents(events)
@@ -191,10 +197,17 @@ async function handleDelete(id) {
     fetchEvents();
   }, []);
 
+  useEffect(() => {
+    const meetingsArray = events.filter((event) => event.isMeeting);
+    const busyArray = events.filter((event) => !event.isMeeting);
+    setMeetings(meetingsArray);
+    setBusyTimes(busyArray);
+  }, [events])
+  
   return (
     <div>
         <div>
-            <div style={{float: 'left', width: '300px', marginLeft: '50px' }}>
+            <div style={{float: 'left', width: '275px', marginLeft: '50px' }}>
               <DatePicker defaultDate={new Date()}  selected={startDate} onChange={handleStartDateChange} placeholderText='Start Date' />
               <TimePicker
                 placeholder="Select Time"
@@ -221,9 +234,20 @@ async function handleDelete(id) {
                 <button onClick={handleCreateEvent} style={{ marginTop: '10px', width: '60px', height: '50px', backgroundColor: 'black', color: 'white' }}>Submit</button>
                 <br />
                 <button onClick={handleScheduleEvent} style={{ marginTop: '10px', width: '80px', height: '50px', backgroundColor: 'black', color: 'white' }}>Schedule Meeting</button>
-                <div>
-                    <ul style={{marginTop: '20px', listStyle: 'none', padding: '30px'}}>
-                        {events.map((event, index) => (
+                <div style={{padding: '30px'}}>
+                    <h1>Meetings</h1>
+                    <ul style={{listStyle: 'none'}}>
+                        {meetings.map((event, index) => (
+                          <div>
+                            <li key={index}>{event.title}</li>
+                            <button onClick={() => handleDelete(event.id)}>Delete</button>
+                          </div>
+                        ))}
+                    </ul>
+                    <br />
+                    <h1>Busy Times</h1>
+                    <ul style={{listStyle: 'none'}}>
+                        {busyTimes.map((event, index) => (
                           <div>
                             <li key={index}>{event.title}</li>
                             <button onClick={() => handleDelete(event.id)}>Delete</button>

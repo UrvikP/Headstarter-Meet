@@ -34,7 +34,8 @@ app.post("/events", async (req, res) => {
         startHour: req.body.startHour,
         startMinute: req.body.startMinute,
         endHour: req.body.endHour,
-        endMinute: req.body.endMinute
+        endMinute: req.body.endMinute,
+        isMeeting: req.body.isMeeting
     });
     const createdEvent = await newEvent.save();
     res.json(createdEvent);

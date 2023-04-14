@@ -14,7 +14,8 @@ const EventSchema = new Schema({
   startHour: Number,
   startMinute: Number,
   endHour: Number,
-  endMinute: Number
+  endMinute: Number,
+  isMeeting: Boolean
 });
 
 const eventModel = mongoose.model('Events', EventSchema);
